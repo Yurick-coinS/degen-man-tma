@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en"> <!-- Меняем язык документа на английский -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEGEN-MAN</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        body {
+            background-color: var(--tg-theme-bg-color, #121212);
+            color: var(--tg-theme-text-color, #ffffff);
+            font-family: 'Courier New', Courier, monospace; /* Меняем шрифт на более "компьютерный" */
+            text-align: center;
+            padding: 20px;
+        }
+        .degen-face {
+            font-size: 80px;
+            color: #888;
+        }
+        .tshirt-text {
+            font-weight: bold;
+            color: #000;
+            background-color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            letter-spacing: 1px; /* Добавляем расстояние между буквами */
+        }
+        .welcome-text {
+             color: #aaa; /* Делаем приветствие чуть более тусклым */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="degen-face">-_-</div>
+
+    <h1>DEGEN-MAN</h1>
+    <p class="tshirt-text">STOP BEING POOR</p>
+
+    <!-- ИЗМЕНЕНО: Приветствие теперь на английском -->
+    <p class="welcome-text">Welcome, <span id="user-info">degen</span>. You are in the maze.</p>
+
+
+    <script>
+        const tg = window.Telegram.WebApp;
+
+        tg.expand(); 
+
+        const userInfoSpan = document.getElementById('user-info');
+        
+        // В tg.initDataUnsafe.user.first_name будет имя пользователя из Telegram,
+        // оно подставится в английское предложение.
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            userInfoSpan.textContent = tg.initDataUnsafe.user.first_name;
+        }
+
+        // ИЗМЕНЕНО: Текст на кнопке теперь на английском
+        tg.MainButton.setText("CLOSE THE MAZE");
+        tg.MainButton.setTextColor("#ffffff"); // Белый текст
+        tg.MainButton.setColor("#f55"); // Красный цвет для кнопки, как сигнал опасности
+        tg.MainButton.show();
+
+        tg.MainButton.onClick(function(){
+            tg.close();
+        });
+    </script>
+</body>
+</html>
