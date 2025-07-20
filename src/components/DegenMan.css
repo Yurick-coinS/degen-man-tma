@@ -1,0 +1,31 @@
+/* src/components/DegenMan.css */
+.degen-man {
+	/* Позиционируем его точно в клетке сетки */
+	grid-column-start: 1;
+	/* По умолчанию в клетке 1 */
+	grid-row-start: 1;
+	/* По умолчанию в клетке 1 */
+
+	/* Внешний вид героя */
+	background-color: white;
+	/* Та самая белая майка */
+	border-radius: 50%;
+	/* Делаем его круглым, как в Pac-Man */
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	width: 20px;
+	height: 20px;
+	box-sizing: border-box;
+	/* Чтобы рамка не увеличивала размер */
+	border: 1px solid #333;
+}
+
+.face {
+	color: black;
+	font-size: 10px;
+	font-weight: bold;
+	transform: rotate(90deg);
+	/* Поворачиваем лицо, чтобы оно "смотрело" вбок */
+}
