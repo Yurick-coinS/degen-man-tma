@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,6 +65,7 @@
       margin-top: 0.5em;
       margin-bottom: 0.5em;
       z-index: 2;
+      position: relative;
     }
     .game-board {
       width: var(--board-size);
@@ -98,26 +98,40 @@
       display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100;
     }
     .score-panel, .controls { display: none; }
+    .controls-row {
+      width: 100vw;
+      max-width: var(--max-board);
+      margin: 0 auto;
+      margin-top: 1.5em; /* Подняли выше */
+      margin-bottom: 1em;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      z-index: 10;
+      pointer-events: none;
+      position: relative;
+      height: 140px;
+    }
     /* Джойстик */
     .joystick-outer {
-      position: fixed;
-      left: 24px;
-      bottom: 24px;
+      position: relative;
+      left: 0;
+      bottom: 0;
       width: 120px;
       height: 120px;
       z-index: 1000;
-      pointer-events: none;
+      pointer-events: auto;
       touch-action: none;
-      display: none;
+      display: block;
     }
     .joystick-base {
       position: absolute;
       left: 0; top: 0;
       width: 120px; height: 120px;
-      background: rgba(153,69,255,0.18);
+      background: rgba(153,69,255,0.25);
       border-radius: 50%;
       border: 3px solid #9945FF;
-      box-shadow: 0 0 16px #9945FF88;
+      box-shadow: 0 0 24px #9945FF88;
       pointer-events: none;
       touch-action: none;
     }
@@ -128,24 +142,10 @@
       background: #14F195;
       border-radius: 50%;
       border: 3px solid #fff;
-      box-shadow: 0 0 8px #14F19588;
+      box-shadow: 0 0 16px #14F19588;
       pointer-events: none;
       touch-action: none;
       transition: background 0.1s;
-    }
-    .gamepad-panel {
-      width: 100vw;
-      max-width: 420px;
-      margin: 0 auto;
-      margin-top: 0.5em;
-      margin-bottom: 0.5em;
-      display: flex;
-      justify-content: flex-end;
-      align-items: flex-end;
-      z-index: 10;
-      pointer-events: none;
-      position: relative;
-      height: 220px;
     }
     .abtns {
       width: 180px; height: 180px; margin-right: 1cm; position: relative;
@@ -155,11 +155,11 @@
     .abtn {
       position: absolute;
       right: 0; bottom: 0;
-      width: 110px; height: 110px;
+      width: 90px; height: 90px;
       background: #e74c3c;
       border-radius: 50%;
       display: flex; justify-content: center; align-items: center;
-      font-size: 3rem; color: #fff; font-weight: bold;
+      font-size: 2.2rem; color: #fff; font-weight: bold;
       border: 4px solid #fff;
       box-shadow: 0 2px 16px #e74c3c88;
       opacity: 0.4;
@@ -174,12 +174,18 @@
     }
     .abtn:active { background: #c0392b; opacity: 1; transform: scale(0.95); }
     @media (max-width: 500px) {
-      .gamepad-panel { height: 120px; }
       .abtns { width: 100px; height: 100px; margin-right: 0.5cm; }
       .abtn { width: 48px; height: 48px; font-size: 1.3rem; }
-      .joystick-outer { width: 80px; height: 80px; left: 10px; bottom: 10px; }
+      .joystick-outer { width: 80px; height: 80px; }
       .joystick-base { width: 80px; height: 80px; }
       .joystick-stick { width: 28px; height: 28px; left: 26px; top: 26px; }
+    }
+    @media (max-width: 350px) {
+      .abtns { width: 60px; height: 60px; margin-right: 0.5cm; }
+      .abtn { width: 40px; height: 40px; font-size: 1.1rem; }
+      .joystick-outer { width: 60px; height: 60px; }
+      .joystick-base { width: 60px; height: 60px; }
+      .joystick-stick { width: 20px; height: 20px; left: 20px; top: 20px; }
     }
     html, body { overscroll-behavior: none; }
   </style>
@@ -214,13 +220,11 @@
       </div>
     </div>
   </div>
-  <!-- Джойстик -->
-  <div class="joystick-outer" id="joystick-outer">
-    <div class="joystick-base"></div>
-    <div class="joystick-stick" id="joystick-stick"></div>
-  </div>
-  <!-- Кнопка A справа -->
-  <div class="gamepad-panel">
+  <div class="controls-row">
+    <div class="joystick-outer" id="joystick-outer">
+      <div class="joystick-base"></div>
+      <div class="joystick-stick" id="joystick-stick"></div>
+    </div>
     <div class="abtns">
       <div class="abtn" id="abtn-a"><span>A</span></div>
     </div>
@@ -1030,7 +1034,6 @@
     const joystickOuter = document.getElementById('joystick-outer');
     const joystickStick = document.getElementById('joystick-stick');
     let joystickActive = false;
-    let joystickStart = { x: 0, y: 0 };
     let joystickDir = { x: 0, y: 0 };
     let joystickTimer = null;
     function setJoystickDir(x, y) {
@@ -1060,70 +1063,59 @@
       joystickStick.style.top = (joystickOuter.offsetHeight / 2 - joystickStick.offsetHeight / 2) + 'px';
       joystickDir = { x: 0, y: 0 };
     }
-    function showJoystick(x, y) {
-      joystickOuter.style.display = 'block';
-      joystickOuter.style.left = (x - joystickOuter.offsetWidth / 2) + 'px';
-      joystickOuter.style.top = (y - joystickOuter.offsetHeight / 2) + 'px';
-      resetJoystick();
-    }
-    function hideJoystick() {
-      joystickOuter.style.display = 'none';
-      resetJoystick();
-    }
     function joystickLoop() {
       if (joystickActive) {
         playerNextDirection = { ...joystickDir };
         joystickTimer = requestAnimationFrame(joystickLoop);
       }
     }
-    function isLeftSide(x) {
-      return x < window.innerWidth * 0.5;
-    }
-    document.addEventListener('touchstart', function(e) {
-      if (e.touches.length === 1 && isLeftSide(e.touches[0].clientX)) {
+    // Touch events
+    joystickOuter.addEventListener('touchstart', function(e) {
+      if (e.touches.length === 1) {
         joystickActive = true;
-        joystickStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        showJoystick(joystickStart.x, joystickStart.y);
         joystickLoop();
       }
     });
-    document.addEventListener('touchmove', function(e) {
+    joystickOuter.addEventListener('touchmove', function(e) {
       if (joystickActive && e.touches.length === 1) {
-        const dx = e.touches[0].clientX - joystickStart.x;
-        const dy = e.touches[0].clientY - joystickStart.y;
+        const rect = joystickOuter.getBoundingClientRect();
+        const dx = e.touches[0].clientX - (rect.left + joystickOuter.offsetWidth / 2);
+        const dy = e.touches[0].clientY - (rect.top + joystickOuter.offsetHeight / 2);
         setJoystickDir(dx, dy);
       }
     });
-    document.addEventListener('touchend', function(e) {
-      if (joystickActive) {
-        joystickActive = false;
-        hideJoystick();
-        cancelAnimationFrame(joystickTimer);
-        playerNextDirection = { x: 0, y: 0 };
-      }
+    joystickOuter.addEventListener('touchend', function(e) {
+      joystickActive = false;
+      resetJoystick();
+      cancelAnimationFrame(joystickTimer);
+      playerNextDirection = { x: 0, y: 0 };
     });
-    document.addEventListener('mousedown', function(e) {
-      if (e.button === 0 && isLeftSide(e.clientX)) {
+    // Mouse events (for desktop)
+    joystickOuter.addEventListener('mousedown', function(e) {
+      if (e.button === 0) {
         joystickActive = true;
-        joystickStart = { x: e.clientX, y: e.clientY };
-        showJoystick(joystickStart.x, joystickStart.y);
         joystickLoop();
       }
     });
-    document.addEventListener('mousemove', function(e) {
+    joystickOuter.addEventListener('mousemove', function(e) {
       if (joystickActive) {
-        const dx = e.clientX - joystickStart.x;
-        const dy = e.clientY - joystickStart.y;
+        const rect = joystickOuter.getBoundingClientRect();
+        const dx = e.clientX - (rect.left + joystickOuter.offsetWidth / 2);
+        const dy = e.clientY - (rect.top + joystickOuter.offsetHeight / 2);
         setJoystickDir(dx, dy);
       }
     });
-    document.addEventListener('mouseup', function(e) {
-      if (joystickActive) {
-        joystickActive = false;
-        hideJoystick();
-        cancelAnimationFrame(joystickTimer);
-        playerNextDirection = { x: 0, y: 0 };
-      }
+    joystickOuter.addEventListener('mouseup', function(e) {
+      joystickActive = false;
+      resetJoystick();
+      cancelAnimationFrame(joystickTimer);
+      playerNextDirection = { x: 0, y: 0 };
+    });
+    joystickOuter.addEventListener('mouseleave', function(e) {
+      joystickActive = false;
+      resetJoystick();
+      cancelAnimationFrame(joystickTimer);
+      playerNextDirection = { x: 0, y: 0 };
     });
     // Кнопка A (стрельба)
     abtnA.addEventListener('touchstart', e => {
@@ -1137,4 +1129,3 @@
   </script>
 </body>
 </html>
-```
