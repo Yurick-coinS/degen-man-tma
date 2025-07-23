@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>DEGEN-MAN: Solana Edition</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+    :root {
+      --board-size: 90vw;
+      --max-board: 340px;
+      --neon: #9945FF;
+      --neon-glow: 0 0 16px #9945FF, 0 0 32px #9945FF;
+      --neon-green: #14F195;
+      --neon-green-glow: 0 0 8px #14F195, 0 0 16px #14F195;
+    }
+    body {
+      margin: 0; padding: 0; background: #0f0f1a;
+      color: #fff;
+      font-family: 'Share Tech Mono', 'Courier New', monospace;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: flex-start;
+      overflow-x: hidden;
+      touch-action: none;
+    }
+    .console-header {
+      width: 100vw;
+      max-width: 400px;
+      margin: 0 auto;
+      margin-top: 12px;
+      margin-bottom: 0;
+      text-align: center;
+      z-index: 10;
+      position: relative;
+      pointer-events: none;
+    }
+    .console-title {
+      color: var(--neon);
+      font-size: 2.1rem;
+      font-family: 'Share Tech Mono', monospace;
+      text-shadow: var(--neon-glow);
+      font-weight: bold;
+      margin-bottom: 0.2em;
+      letter-spacing: 2px;
+    }
+    .console-subtitle {
+      color: var(--neon-green);
+      font-size: 1.1rem;
+      text-shadow: var(--neon-green-glow);
+      margin-bottom: 0.2em;
+    }
+    .console-status {
+      color: var(--neon-green);
+      font-size: 1.1rem;
+      text-shadow: var(--neon-green-glow);
+      margin-bottom: 0.5em;
+      letter-spacing: 1px;
+    }
+    .game-board-wrapper {
+      width: 100vw;
+      max-width: var(--max-board);
+      display: flex; justify-content: center; align-items: center;
+      margin: 0 auto 0 auto;
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+      z-index: 2;
+    }
+    .game-board {
+      width: var(--board-size);
+      max-width: var(--max-board);
+      aspect-ratio: 1/1;
+      background: #000;
+      border: 4px solid var(--neon);
+      box-shadow: 0 0 32px 8px var(--neon);
+      border-radius: 12px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+    .level-indicator {
+      position: absolute; top: 8px; left: 8px;
+      color: var(--neon-green); font-size: 1rem; z-index: 5;
+      text-shadow: var(--neon-green-glow);
+      font-family: inherit;
+    }
+    .player, .ghost, .candle, .wall, .bullet { position: absolute; }
+    .player { width: 15px; height: 15px; z-index: 10; }
+    .ghost { width: 15px; height: 15px; z-index: 5; }
+    .candle { width: 4px; height: 4px; z-index: 3; border-radius: 50%; background-color: #FFD700; box-shadow: 0 0 6px #FFD700; }
+    .candle.power-candle { width: 10px; height: 10px; background-color: #00FFFA; box-shadow: 0 0 12px #00FFFA, 0 0 4px #00FFFA; border: 2px solid #fff; }
+    .wall { background-color: #14F195; z-index: 2; border-radius: 2px; box-shadow: 0 0 10px #14F195, 0 0 2px #14F195; }
+    .bullet { width: 6px; height: 6px; border-radius: 50%; background: #00FFFA; box-shadow: 0 0 8px #00FFFA; z-index: 20; pointer-events: none; }
+    .game-over, .level-complete, .start-screen {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.85);
+      display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100;
+    }
+    .score-panel, .controls { display: none; }
+    /* Геймпад */
+    .gamepad-panel {
+      width: 100vw;
+      max-width: 400px;
+      margin: 0 auto;
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 10;
+      pointer-events: none;
+      position: relative;
+      height: 200px;
+    }
+    .dpad-cross {
+      width: 180px; height: 180px; position: relative;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      pointer-events: auto;
+      margin-left: 1cm; /* Сдвиг вправо */
+      margin-top: 1cm;  /* Сдвиг вниз */
+    }
+    .dpad-row {
+      display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 24px;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    .dpad-btn {
+      width: 80px; height: 80px;
+      background: #222;
+      border-radius: 18px;
+      color: #fff;
+      font-size: 2.2rem;
+      font-family: inherit;
+      font-weight: bold;
+      border: 4px solid #fff;
+      box-shadow: 0 2px 12px #0008;
+      pointer-events: auto;
+      transition: background 0.1s, transform 0.1s;
+      display: flex; align-items: center; justify-content: center;
+      user-select: none;
+      margin: 0;
+    }
+    .dpad-btn:active { background: #444; transform: scale(0.95); }
+    .abtns {
+      width: 180px; height: 180px; margin-right: 1cm; position: relative;
+      display: flex; justify-content: center; align-items: center;
+      pointer-events: auto;
+    }
+    .abtn {
+      position: absolute;
+      right: 0; bottom: 0;
+      width: 110px; height: 110px;
+      background: #e74c3c;
+      border-radius: 50%;
+      display: flex; justify-content: center; align-items: center;
+      font-size: 3rem; color: #fff; font-weight: bold;
+      border: 4px solid #fff;
+      box-shadow: 0 2px 16px #e74c3c88;
+      opacity: 0.4;
+      pointer-events: auto;
+      transition: background 0.1s, transform 0.1s, opacity 0.2s;
+      font-family: inherit;
+    }
+    .abtn.active {
+      opacity: 1;
+      background: #e74c3c;
+      color: #fff;
+    }
+    .abtn:active { background: #c0392b; opacity: 1; transform: scale(0.95); }
+    @media (max-width: 500px) {
+      .gamepad-panel { height: 110px; }
+      .dpad-cross, .abtns { width: 80px; height: 80px; }
+      .dpad-btn { width: 38px; height: 38px; font-size: 1.3rem; border-radius: 8px; }
+      .abtn { width: 48px; height: 48px; font-size: 1.3rem; }
+      .dpad-row { gap: 10px; }
+      .dpad-cross { margin-left: 0.5cm; margin-top: 0.5cm; }
+      .abtns { margin-right: 0.5cm; }
+    }
+    html, body { overscroll-behavior: none; }
+  </style>
+</head>
+<body>
+  <div class="console-header">
+    <div class="console-title">DEGEN-MAN</div>
+    <div class="console-subtitle">THE MAZE OF F.U.D.</div>
+    <div class="console-status">
+      $POOR: <span id="score">0</span>&nbsp;&nbsp;LIVES: <span id="lives">3</span>
+    </div>
+  </div>
+  <div class="game-board-wrapper">
+    <div class="game-board" id="game-board">
+      <div class="level-indicator" id="level-indicator">LEVEL 1</div>
+      <div class="start-screen" id="start-screen">
+        <h2 style="color:#9945FF;text-shadow:0 0 8px #9945FF;">DEGEN-MAN</h2>
+        <p style="color:#14F195;">Collect green candles. Avoid F.U.D.<br>
+        <b>Power-candle</b>: shoot with <kbd>Space</kbd>, <kbd>J</kbd> or <b>A</b> button!</p>
+        <button class="btn" id="start-btn">START GAME</button>
+      </div>
+      <div class="game-over" id="game-over" style="display: none;">
+        <h2>GAME OVER</h2>
+        <p>Final Score: <span id="final-score">0</span></p>
+        <p>Level Reached: <span id="final-level">1</span></p>
+        <button class="btn" id="restart-btn">TRY AGAIN</button>
+      </div>
+      <div class="level-complete" id="level-complete" style="display: none;">
+        <h2>LEVEL <span id="completed-level">1</span> COMPLETE!</h2>
+        <p>Current Score: <span id="level-score">0</span></p>
+        <p>Get ready for the next level...</p>
+      </div>
+    </div>
+  </div>
+  <!-- Геймпад ПОД игровым полем -->
+  <div class="gamepad-panel">
+    <div class="dpad-cross">
+      <div class="dpad-row">
+        <button class="dpad-btn" id="dpad-up">&#9650;</button>
+      </div>
+      <div class="dpad-row">
+        <button class="dpad-btn" id="dpad-left">&#9664;</button>
+        <div style="width:38px;height:38px;pointer-events:none;"></div>
+        <button class="dpad-btn" id="dpad-right">&#9654;</button>
+      </div>
+      <div class="dpad-row">
+        <button class="dpad-btn" id="dpad-down">&#9660;</button>
+      </div>
+    </div>
+    <div class="abtns">
+      <div class="abtn" id="abtn-a"><span>A</span></div>
+    </div>
+  </div>
+  <script>
